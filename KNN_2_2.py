@@ -36,7 +36,7 @@ def auto_norm(data):
     m = data.shape[0]
     norm_data = data - tile(min, (m, 1))
     norm_data /= tile(diff, (m, 1))
-    return norm_data, diff, m
+    return norm_data, diff, min
 
 
 def dating_test():
@@ -57,7 +57,21 @@ def dating_test():
     print u'预测错误率%f' % (error_count / float(test_count))
 
 
-dating_test()
+def classify_person():
+    while True:
+        result = [u'不感兴趣', u'感兴趣', u'喜欢']
+        miles = float(raw_input(u'每年获得的飞行常客里程数'))
+        games = float(raw_input(u'输入玩视频游戏时间百分比'))
+        ice = float(raw_input(u'每周消费的冰激凌公升数'))
+        data, labels = file2matrix('resource/datingTestSet.txt')
+        norm_data, diff, min = auto_norm(data)
+        in_array = array([miles, games, ice])
+        label_result = KNN_2_1.classify0((in_array - min) / diff, norm_data, labels, 4)
+        print u'你可能对这个人', result[label_result - 1]
+
+# dating_test()
+classify_person()
+
 
 # data, label_array = file2matrix('resource/datingTestSet.txt')
 # norm_data, diff, m = auto_norm(data)
