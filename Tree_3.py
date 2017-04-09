@@ -2,6 +2,7 @@
 
 import math
 import numpy
+import operator
 
 
 # 计算香农熵
@@ -27,7 +28,7 @@ def split_data_set(data_set, axis, value):
     :param data_set: 数据集
     :param axis:     该特征所在的列
     :param value:    特征
-    :return:
+    :return: 分割后的数组
     '''
     ret_data_set = None
     for feature in data_set:
@@ -67,13 +68,64 @@ def choose_best_feature(data_set):
 
 
 def create_data_set():
+    '''
+    海洋生物测试数据集
+    特征：浮出水面是否可以生存（1 0）  是否有脚蹼（1 0）
+    分类：是否属于鱼类，1是0否，默认数组的最末参数为分类
+    :return:
+    '''
     data_set = numpy.array([[1, 1, 1]
                      , [1, 1, 1]
                      , [1, 0, 0]
                      , [0, 1, 0]
                      , [0, 1, 0]])
+    # 特征
     labels = ['no surfacing', 'flippers']
     return data_set, labels
+
+
+# 类别占比最多的类
+def majority_cnt(class_list):
+    class_count = {}
+    for vote in class_list:
+        if vote not in class_count.keys():
+            class_count[vote] = 0
+        class_count[vote] += 1
+    sorted_class = sorted(class_count.iteritems(), key=operator.getitem(1), reverse=True)
+    return sorted_class[0][0]
+
+
+# 创建决策树
+def create_tree(data_set, labels):
+    '''
+    创建决策树
+    :param data_set: 数据集
+    :param labels:   特征标签
+    :return:
+    '''
+
+    # 取出所有分类
+    class_list = data_set[:, -1]
+    # 类别完全相同的情况，直接返回该类别
+    if list(class_list).count(class_list[0]) == len(class_list):
+        return class_list[0]
+    # 遍历完所有特征，返回出现最多的类
+    if len(data_set[0]) == 1:
+        return majority_cnt(class_list)
+    best_feature = choose_best_feature(data_set)
+    best_feature_label = labels[best_feature]
+    # 选择最大增益的特征作为父节点
+    d_tree = {best_feature_label: {}}
+    del(labels[best_feature])
+    feature_values = data_set[:, best_feature]
+    feature_values = set(feature_values)
+    # 遍历该特征的所有取值，递归创建子树
+    for value in feature_values:
+        sub_labels = labels[:]
+        d_tree[best_feature_label][value] = create_tree(split_data_set(data_set, best_feature, value), sub_labels)
+    return d_tree
+
+# 待补：决策树的减枝
 
 
 # test
@@ -82,3 +134,4 @@ print data
 print calc_shanon_ent(data)
 print split_data_set(data, 0, 1)
 print choose_best_feature(data)
+print create_tree(data, labels)
